@@ -6,7 +6,7 @@ Entrega incremental alinhada aos cinco sprints do brief: primeiro prova-se o **p
 
 ## Phases
 
-- [ ] **Phase 1: Geometric pipeline & platform** - API, workers, armazenamento e primeira geração B-rep ponta a ponta no backend
+- [x] **Phase 1: Geometric pipeline & platform** - API, workers, armazenamento e primeira geração B-rep ponta a ponta no backend
 - [ ] **Phase 2: Intent schema & Prompt Architect** - IntentSchemaV1, integração Claude, clarificações e config BrepGen
 - [ ] **Phase 3: VS Code-like UI & 3D foundation** - Layout shell, Monaco, viewport e explorer de topologia
 - [ ] **Phase 4: Realtime orchestration** - WebSockets, progresso de jobs e fluxo completo pela UI
@@ -26,9 +26,9 @@ Entrega incremental alinhada aos cinco sprints do brief: primeiro prova-se o **p
 **Plans**: TBD (refinar em `/gsd-plan-phase 1`)
 
 Plans:
-- [ ] 01-01: Repositório monorepo + Compose + serviços base
-- [ ] 01-02: Worker Celery + integração BrepGen mínima
-- [ ] 01-03: API de jobs + persistência Postgres/MinIO
+- [x] 01-01: Repositório monorepo + Compose + serviços base
+- [x] 01-02: Worker Celery + integração BrepGen mínima
+- [x] 01-03: API de jobs + persistência Postgres/MinIO
 
 ### Phase 2: Intent schema & Prompt Architect
 **Goal**: Todo fluxo de geração dirigido por intent passa por schema validado e camada LLM que produz IntentSchemaV1 ou clarificações.
@@ -100,7 +100,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Geometric pipeline & platform | 0/TBD | Not started | - |
+| 1. Geometric pipeline & platform | 3/3 | Complete | 2026-05-03 |
 | 2. Intent schema & Prompt Architect | 0/TBD | Not started | - |
 | 3. VS Code-like UI & 3D foundation | 0/TBD | Not started | - |
 | 4. Realtime orchestration | 0/TBD | Not started | - |

@@ -12,11 +12,10 @@ Um usuário descreve o que precisa em linguagem natural e recebe **candidatos B-
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Pipeline backend gera B-rep de forma assíncrona (API + workers) com artefatos versionados — **Phase 1** (FOUND-01..04; ver `01-VERIFICATION.md`).
 
 ### Active
 
-- [ ] Pipeline backend gera B-rep de forma assíncrona (API + workers) com artefatos versionados
 - [ ] Contrato **IntentSchemaV1** entre LLM e motor geométrico, com validação e clarificações mínimas
 - [ ] Shell de UI estilo VS Code: explorer de topologia, Monaco, viewport 3D, console copiloto
 - [ ] Loop tempo real: prompt → geração → atualização de modelo na UI
@@ -70,4 +69,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-03 after initialization*
+*Last updated: 2026-05-03 after Phase 1 complete*
