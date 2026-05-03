@@ -41,14 +41,16 @@ def shape_to_step_bytes(shape) -> bytes:
 
 
 def shape_to_stl_bytes(shape) -> bytes:
-    """Exporta mesh triangular em STL binário (pythonocc)."""
+    """Exporta mesh triangular em STL binário (pythonocc). Tessela antes do Write."""
     import os
     import tempfile
 
+    from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
     from OCC.Core.StlAPI import StlAPI_Writer
 
+    BRepMesh_IncrementalMesh(shape, 0.25)
+
     writer = StlAPI_Writer()
-    writer.SetAsciiMode(False)
     fd, path = tempfile.mkstemp(suffix=".stl")
     os.close(fd)
     try:

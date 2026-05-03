@@ -1,71 +1,157 @@
-# NeuralCAD Architect — app
+# NeuralCAD Architect — aplicativo (`app`)
 
-Co-piloto CAD (Fase 1: pipeline geométrico e plataforma).
+Stack local: Postgres, Redis, MinIO (S3-compatível), API FastAPI + Celery worker (`pythonocc` / OCC), SPA Vite/React.
 
-## Local (Docker)
+Este documento descreve o **fluxo completo** para subir backend e frontend e validar um job até artefactos (STEP/STL).
 
-Copie variáveis (opcional; o `docker-compose.yml` já define valores por omissão para desenvolvimento):
+## Pré-requisitos
+
+- **Docker Engine** + **Compose** (plug-in).
+- **Node.js 20+** (para `services/web`).
+- Portas no host relativamente livres (veja secção seguinte).
+
+## Portas no host (`docker-compose`)
+
+| Serviço   | Binding no host por omissão | Notas |
+|-----------|------------------------------|-------|
+| Postgres  | `127.0.0.1:5432`             |       |
+| Redis     | **`127.0.0.1:6380` → container `6379`** | Evita conflito se já tiveres Redis na 6379. Dentro da rede Docker continua-se a usar `redis:6379`. |
+| MinIO     | `9000` (API), `9001` (console) |       |
+| API       | **`127.0.0.1:${HOST_API_PORT:-8000}`** | Define `HOST_API_PORT` na raiz ou no `.env` se **8000** estiver ocupada. |
+| Web (dev) | `5173`                        | Após `npm run dev` em `services/web`. |
+
+Passo seguinte sempre a partir da **raiz** do repositório (`.../NeuralCAD/app`).
+
+---
+
+## 1. Variáveis de ambiente da stack
+
+Copia o exemplo e ajusta segredos se quiseres:
 
 ```bash
 cp .env.example .env
 ```
 
-Subir serviços:
+- **`HOST_API_PORT`**: porta publicada no host para a API (omitir ou `8000` por omissão). Se já houver algo a ouvir em **8000**, usa por exemplo **`8010`** e alinha o frontend (passo 4).
+- **Chave Claude**: no `.env`, define **`ANTHROPIC_API_KEY`**. Os serviços `api` e `worker` já leem essa env do ficheiro no `docker-compose`.
 
-```bash
-docker compose up --build
-```
-
-Validar configuração:
+Validar o compose:
 
 ```bash
 docker compose config
 ```
 
-**Portas:** API **8000**, Postgres **5432** (bind em 127.0.0.1), Redis **6379** (127.0.0.1), MinIO **9000** (API S3) e **9001** (consola).
+---
 
-Não commite `.env` com segredos reais.
+## 2. Subir backend (API + worker + dados)
 
-## API (rápido)
-
-Fluxo recomendado em desenvolvimento:
-
-1. **`POST /api/v1/intent/elicit`** — texto natural ⇒ JSON `ElicitSuccess`, ou **422** com clarificação/rejeição. Exige `ANTHROPIC_API_KEY` no ambiente (defina em `.env`; no Compose o serviço `api` propaga `ANTHROPIC_*`).
+Build e arranque em primeiro plano (logs visíveis):
 
 ```bash
-curl -sS -X POST http://127.0.0.1:8000/api/v1/intent/elicit \
-  -H 'Content-Type: application/json' \
-  -d '{"prompt":"caixa 100x50x25 mm","attempt":1}'
+docker compose up --build
 ```
 
-2. **`POST /api/v1/jobs`** — corpo `IntentJobEnvelope`: `{"intent": <IntentSchemaV1 completo>, "preflight": {"geo_risk": {...}}}` opcional. Caso o modelo devolvido no passo 1 já inclua `geo_risk`, pode reutilizar esse snapshot em `preflight`.
+Ou em segundo plano:
 
 ```bash
-curl -sS -X POST http://127.0.0.1:8000/api/v1/jobs \
-  -H 'Content-Type: application/json' \
-  -d '{"intent":{"sessionId":"demo","promptOriginal":"...","intent":{"objectType":"box","style":[],"functionalGoal":"demo"},"constraints":{"dimensionsMm":{"width":100,"height":50,"depth":25},"symmetry":"none","manufacturingHints":[],"materialHints":[]}}, "preflight":{"geo_risk":{"severity":"info","messages":["ok"]}}}'
+docker compose up -d --build
 ```
 
-- `GET /api/v1/jobs/{id}` — estado e `dimensional_audit` quando concluído.
+Aguarda até os healthchecks do Postgres e do Redis ficarem **`healthy`** e a API responder.
 
-Corpo mínimo histórico só com dimensões ao nível raíz continua a funcionar **após** uma tentativa falhada de parse e normalização legada (dims sob `intent.constraints` no bloco interno são promovidas quando necessário).
+### Conflitos de porta
 
-## Frontend (Vite — fase 3)
+| Problema | Resolução |
+|----------|-----------|
+| **Redis 6379** já em uso no host | O projeto já expõe Redis em **`127.0.0.1:6380`**. Dentro dos containers **`REDIS_URL` continua `redis://redis:6379/0`**. |
+| **API 8000** ocupada | `export HOST_API_PORT=8010` (ou coloca no `.env`) e `docker compose up --build` de novo. Health: `http://127.0.0.1:8010/health`. |
 
-Na primeira vez:
+---
+
+## 3. Verificação rápida da API
+
+```bash
+API_PORT="${HOST_API_PORT:-8000}"
+curl -sS "http://127.0.0.1:${API_PORT}/health"
+```
+
+Resposta esperada: JSON com `"status":"ok"` (ou equivalente definido pela app).
+
+---
+
+## 4. Frontend (SPA)
+
+Noutro terminal:
 
 ```bash
 cd services/web
 npm install
-# opcional: copiar exemplo de URL da API
-cp .env.example .env.development.local
+```
+
+Cria `.env.development.local` se ainda não existir — a **URL da API** tem de bater certo com a porta do passo 2:
+
+```bash
+# Exemplo se a API estiver em 8000 (omissão)
+echo 'VITE_API_BASE_URL=http://127.0.0.1:8000' > .env.development.local
+
+# Se usaste HOST_API_PORT=8010:
+# echo 'VITE_API_BASE_URL=http://127.0.0.1:8010' > .env.development.local
+```
+
+Arranque em desenvolvimento:
+
+```bash
 npm run dev
 ```
 
-Abre **`http://127.0.0.1:5173`**. Por omissão, `VITE_API_BASE_URL` aponta a `http://127.0.0.1:8000`.
+Abre o URL que o Vite indicar (normalmente `http://127.0.0.1:5173`).
 
-A API expõe **CORS** para `http://localhost:5173` e `http://127.0.0.1:5173` — necessário para chamadas desde o frontend em desenvolvimento. Para pré-visualizar STL/STEP pela API, configure no **mesmo** host que usa o Worker as variáveis `MINIO_*` (`docker-compose` já as injcta no serviço `api`).
+---
 
-## Licença
+## 5. Verificação ponta-a-ponta (job + artefactos)
 
-Ver repositório principal do projeto.
+Com a stack de pé, podes criar um job e ir às rotas de artefactos. Exemplo mínimo (substitui `API_PORT` se necessário):
+
+```bash
+API_PORT="${HOST_API_PORT:-8000}"
+BASE="http://127.0.0.1:${API_PORT}"
+
+JOB_ID=$(curl -sS -X POST "$BASE/api/v1/jobs" \
+  -H "Content-Type: application/json" \
+  -d '{"spec":"caixa 10x20x30 mm","language":"pt"}' | jq -r '.id')
+
+# Poll até status success (ajusta o sleep/repetições conforme a carga)
+for i in $(seq 1 60); do
+  S=$(curl -sS "$BASE/api/v1/jobs/$JOB_ID" | jq -r '.status')
+  echo "status=$S"
+  [ "$S" = "success" ] && break
+  sleep 2
+done
+
+curl -sS -o /tmp/out.step "$BASE/api/v1/jobs/$JOB_ID/artifacts/step"
+curl -sS -o /tmp/out.stl  "$BASE/api/v1/jobs/$JOB_ID/artifacts/stl"
+
+wc -c /tmp/out.step /tmp/out.stl
+```
+
+Esperado: **`success`**, STEP e STL com **tamanho em bytes maior que zero** (o STL depende da malha tessellada antes da exportação no worker OCC).
+
+---
+
+## 6. Parar a stack
+
+```bash
+docker compose down
+```
+
+Volumes nomeados mantêm dados de Postgres/MinIO até os apagares explicitamente.
+
+---
+
+## Estrutura útil
+
+- `services/api` — FastAPI, filas Celery, MinIO.
+- `services/worker` — worker Celery, geometria OCC, export STEP/STL.
+- `services/web` — UI Vite/React (Monaco, R3F).
+
+Para detalhes de API e variáveis, vê também `services/api/README.md` e `services/worker/README.md`.
