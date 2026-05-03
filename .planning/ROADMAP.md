@@ -8,7 +8,7 @@ Entrega incremental alinhada aos cinco sprints do brief: primeiro prova-se o **p
 
 - [x] **Phase 1: Geometric pipeline & platform** - API, workers, armazenamento e primeira geração B-rep ponta a ponta no backend
 - [ ] **Phase 2: Intent schema & Prompt Architect** - IntentSchemaV1, integração Claude, clarificações e config BrepGen
-- [ ] **Phase 3: VS Code-like UI & 3D foundation** - Layout shell, Monaco, viewport e explorer de topologia
+- [ ] **Phase 3: VS Code-like UI & 3D foundation** - Layout shell, Monaco, viewport e explorer de topologia *(artefatos de plano: `.planning/phases/03-vs-code-like-ui-3d-foundation/`)*.
 - [ ] **Phase 4: Realtime orchestration** - WebSockets, progresso de jobs e fluxo completo pela UI
 - [ ] **Phase 5: Refinement, lint & iteration history** - Seleção, refinamento, lint geométrico, versões e diff visual
 
@@ -55,7 +55,7 @@ Plans:
   2. Modelo servido pelo backend é visível no viewport com performance aceitável em asset de MVP
   3. Árvore reflete hierarquia esperada para o artefato de teste documentado
 **UI hint**: yes
-**Plans**: TBD
+**Plans**: Ficheiros `.planning/phases/03-vs-code-like-ui-3d-foundation/03-{01..03}-PLAN.md`
 
 Plans:
 - [ ] 03-01: App Vite + layout + estado global
@@ -102,6 +102,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Geometric pipeline & platform | 3/3 | Complete | 2026-05-03 |
 | 2. Intent schema & Prompt Architect | 0/TBD | Not started | - |
-| 3. VS Code-like UI & 3D foundation | 0/TBD | Not started | - |
+| 3. VS Code-like UI & 3D foundation | 0/3 | Planned | - |
 | 4. Realtime orchestration | 0/TBD | Not started | - |
 | 5. Refinement, lint & iteration history | 0/TBD | Not started | - |
