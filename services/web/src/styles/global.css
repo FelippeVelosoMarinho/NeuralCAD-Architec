@@ -1,0 +1,180 @@
+:root {
+  --bg-app: #1e1e1e;
+  --bg-panel: #252526;
+  --bg-muted: #2d2d2d;
+  --border: #3c3c3c;
+  --accent: #0e639c;
+  --text: #d4d4d4;
+  --text-muted: #969696;
+  --error: #f14c4c;
+  --success: #73c991;
+  font-family:
+    system-ui,
+    Segoe UI,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text);
+}
+
+.app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-shell {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.app-shell__sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  transition: width 160ms ease, opacity 160ms ease;
+}
+
+.app-shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-shell__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-shell__center-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-muted);
+}
+
+.app-shell__center-tabs button {
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.app-shell__center-tabs button.is-active {
+  color: var(--text);
+  background: var(--bg-app);
+  border-bottom: 2px solid var(--accent);
+}
+
+.app-shell__center-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-shell__bottom {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  transition: height 160ms ease;
+}
+
+.panel-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.status-bar {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 0.2rem 0.75rem;
+  border-top: 1px solid var(--border);
+  background: #007acc20;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.top-row button {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+}
+
+.top-row button:hover {
+  background: var(--border);
+}
+
+.explorer-body {
+  padding: 0.5rem 0.75rem;
+  overflow: auto;
+  flex: 1;
+}
+
+.topology-branch {
+  font-size: 0.85rem;
+  margin: 0.15rem 0;
+}
+
+.topology-branch.is-selected .topology-row {
+  background: #0e639c35;
+  border-radius: 2px;
+}
+
+.topology-row {
+  cursor: pointer;
+  padding: 0.15rem 0;
+}
+
+.topology-children {
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.25rem;
+}
+
+.mesh-viewport-fill {
+  width: 100%;
+  height: 100%;
+}
+
+.mesh-viewport-canvas canvas {
+  display: block;
+}
+
+.viewport-placeholder {
+  padding: 1rem;
+  color: var(--text-muted);
+}

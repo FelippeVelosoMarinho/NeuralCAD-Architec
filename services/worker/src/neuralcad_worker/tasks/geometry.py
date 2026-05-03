@@ -7,7 +7,12 @@ import uuid
 from datetime import datetime, timezone
 
 from neuralcad_worker.db.sync_session import Job, sync_session
-from neuralcad_worker.geometry.measure import measure_bbox_mm, shape_to_step_bytes
+from neuralcad_worker.geometry.measure import (
+    measure_bbox_mm,
+    shape_to_step_bytes,
+    shape_to_stl_bytes,
+    topology_sketch_for_shape,
+)
 from neuralcad_worker.geometry.stub_solid import build_box_shape
 from neuralcad_worker.storage.minio_client import ensure_bucket, get_s3_client, put_object_bytes
 
@@ -15,12 +20,30 @@ DEFAULT_WHD = (10.0, 20.0, 30.0)
 
 
 def _parse_target_dims(payload: dict | None) -> tuple[float, float, float, dict | None]:
+    """
+    Extrai dims alvo desde ``payload_json``.
+
+    Preferência (**Fase 2 / IDEA**): ``constraints.dimensionsMm`` ao nível raiz.
+    **Legado:** ``intent.constraints.dimensionsMm`` quando o primeiro não está completo (Fase 1).
+    """
     if not payload:
         return (*DEFAULT_WHD, None)
-    intent = payload.get("intent") or {}
-    constraints = intent.get("constraints") or {}
-    d = constraints.get("dimensionsMm") or {}
-    w, h, depth = d.get("width"), d.get("height"), d.get("depth")
+
+    dims: dict = {}
+    rc = payload.get("constraints") if isinstance(payload.get("constraints"), dict) else None
+    if rc and isinstance(rc.get("dimensionsMm"), dict):
+        dims = rc["dimensionsMm"]
+
+    intent_block = payload.get("intent") if isinstance(payload.get("intent"), dict) else None
+    if intent_block:
+        nc = intent_block.get("constraints")
+        if isinstance(nc, dict) and isinstance(nc.get("dimensionsMm"), dict):
+            merged = nc["dimensionsMm"]
+            need = ("width", "height", "depth")
+            if not all(isinstance(dims.get(k), (int, float)) for k in need):
+                dims = merged
+
+    w, h, depth = dims.get("width"), dims.get("height"), dims.get("depth")
     if w is not None and h is not None and depth is not None:
         target = {"dimensionsMm": {"width": float(w), "height": float(h), "depth": float(depth)}}
         return float(w), float(h), float(depth), target
@@ -69,6 +92,15 @@ def process_geometry_job(job_id: str) -> None:
     ensure_bucket(client, bucket)
     put_object_bytes(client, bucket, artifact_key, step_bytes, "application/step")
 
+    topology_sketch = topology_sketch_for_shape(shape)
+    mesh_error: str | None = None
+    try:
+        stl_bytes = shape_to_stl_bytes(shape)
+        stl_key = f"jobs/{job_id}/model.stl"
+        put_object_bytes(client, bucket, stl_key, stl_bytes, "model/stl")
+    except Exception as e:  # noqa: BLE001
+        mesh_error = str(e)[:500]
+
     measured_block: dict = {
         "bbox_mm": measured,
         "source": "pythonocc",
@@ -95,7 +127,10 @@ def process_geometry_job(job_id: str) -> None:
         "withinTolerance": overall_within_tolerance,
         "thickness_mm": None,
         "thickness_reason": "not_implemented",
+        "topologySketch": topology_sketch,
     }
+    if mesh_error:
+        audit["mesh_error"] = mesh_error
 
     with SessionFactory() as session:
         job = session.get(Job, uid)

@@ -8,7 +8,7 @@ Entrega incremental alinhada aos cinco sprints do brief: primeiro prova-se o **p
 
 - [x] **Phase 1: Geometric pipeline & platform** - API, workers, armazenamento e primeira geração B-rep ponta a ponta no backend
 - [ ] **Phase 2: Intent schema & Prompt Architect** - IntentSchemaV1, integração Claude, clarificações e config BrepGen
-- [ ] **Phase 3: VS Code-like UI & 3D foundation** - Layout shell, Monaco, viewport e explorer de topologia *(artefatos de plano: `.planning/phases/03-vs-code-like-ui-3d-foundation/`)*.
+- [x] **Phase 3: VS Code-like UI & 3D foundation** - Layout shell, Monaco, viewport e explorer de topologia (`services/web/`).
 - [ ] **Phase 4: Realtime orchestration** - WebSockets, progresso de jobs e fluxo completo pela UI
 - [ ] **Phase 5: Refinement, lint & iteration history** - Seleção, refinamento, lint geométrico, versões e diff visual
 
@@ -58,9 +58,9 @@ Plans:
 **Plans**: Ficheiros `.planning/phases/03-vs-code-like-ui-3d-foundation/03-{01..03}-PLAN.md`
 
 Plans:
-- [ ] 03-01: App Vite + layout + estado global
-- [ ] 03-02: Integração Monaco + chamadas API
-- [ ] 03-03: Viewport Three/R3F + loader + explorer sincronizado
+- [x] 03-01: App Vite + layout + estado global
+- [x] 03-02: Integração Monaco + chamadas API
+- [x] 03-03: Viewport Three/R3F + loader + explorer sincronizado
 
 ### Phase 4: Realtime orchestration
 **Goal**: Experiência contínua da solicitação à conclusão com atualizações em tempo real.
@@ -102,6 +102,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Geometric pipeline & platform | 3/3 | Complete | 2026-05-03 |
 | 2. Intent schema & Prompt Architect | 0/TBD | Not started | - |
-| 3. VS Code-like UI & 3D foundation | 0/3 | Planned | - |
+| 3. VS Code-like UI & 3D foundation | 3/3 | Complete | 2026-05-03 |
 | 4. Realtime orchestration | 0/TBD | Not started | - |
 | 5. Refinement, lint & iteration history | 0/TBD | Not started | - |

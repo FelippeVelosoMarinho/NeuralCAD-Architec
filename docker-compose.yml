@@ -50,6 +50,12 @@ services:
       DATABASE_URL_SYNC: ${DATABASE_URL_SYNC:-postgresql://neuralcad:change_me@postgres:5432/neuralcad}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-change_me_minio}
+      MINIO_BUCKET: ${MINIO_BUCKET:-neuralcad-artifacts}
     depends_on:
       postgres:
         condition: service_healthy
