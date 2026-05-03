@@ -18,6 +18,7 @@ from neuralcad_api.schemas.elicitation import (
     parse_elicit_payload,
 )
 from neuralcad_api.schemas.intent_v1 import IntentSchemaV1
+from neuralcad_api.services.intent_llm_normalize import normalize_intent_payload_for_v1
 
 log = logging.getLogger(__name__)
 
@@ -29,13 +30,22 @@ PROMPT_ARCHITECT_SYSTEM = """You are NeuralCAD Prompt Architect. Output ONLY one
 
 Discriminator field: kind ∈ success | clarification_needed | rejected
 
-If kind=success, include intent (full IntentSchemaV1), geo_risk {severity: info|warn|critical, messages: [string, ...]}, and attempt (number).
+If kind=success, include top-level keys: kind, intent, geo_risk, attempt.
+- "intent" MUST be a single object matching IntentSchemaV1 with camelCase keys exactly:
+  sessionId (string), promptOriginal (string),
+  intent: { objectType (string), style (JSON array of strings, never a single string), functionalGoal (string) },
+  constraints: { optional dimensionsMm: {width, height, depth} all numbers > 0; symmetry; manufacturingHints; materialHints; thicknessMm — do NOT use keys "units", "box", "assumedAxisOrder" },
+  optional topologyHints (object with expectedFacesRange, expectedEdgesRange, holes only — never a bare array),
+  optional surfaceHints, generationConfig, qualityTargets.
+- For simple prismatic parts you may OMIT optional blocks (topologyHints, surfaceHints, generationConfig, qualityTargets) entirely.
+- geo_risk: { severity: info|warn|critical, messages: string[] }
 
-If kind=clarification_needed: questions array with 1-3 strings, optional missing_fields, attempt, max_attempts=2.
+If kind=clarification_needed: questions array (1-3 strings), optional missing_fields, attempt, max_attempts=2.
 
 If kind=rejected: reason string.
 
-IntentSchemaV1 MUST use camelCase keys as in IDEA: sessionId, promptOriginal, intent{objectType,style,functionalGoal}, constraints, optional topologyHints, surfaceHints, generationConfig, qualityTargets.
+Minimal valid success example (intent object only, for shape reference):
+{"sessionId":"s1","promptOriginal":"user text here","intent":{"objectType":"box","style":[],"functionalGoal":"shape"},"constraints":{"dimensionsMm":{"width":100,"height":50,"depth":25},"symmetry":"none","manufacturingHints":[],"materialHints":[]}}
 """
 
 
@@ -172,7 +182,11 @@ class PromptArchitectService:
 
         try:
             if kind == "success":
-                intent = IntentSchemaV1.model_validate(raw_dict["intent"])
+                inner = raw_dict.get("intent")
+                if not isinstance(inner, dict):
+                    return ElicitRejected(reason='success response missing object field "intent"')
+                normalized = normalize_intent_payload_for_v1(inner, fallback_prompt=prompt)
+                intent = IntentSchemaV1.model_validate(normalized)
                 geo_in = raw_dict.get("geo_risk") or {}
                 msgs = geo_in.get("messages")
                 if not isinstance(msgs, list) or not msgs:
