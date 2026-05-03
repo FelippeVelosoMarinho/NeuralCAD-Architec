@@ -19,6 +19,8 @@ Este documento descreve o **fluxo completo** para subir backend e frontend e val
 | MinIO     | `9000` (API), `9001` (console) |       |
 | API       | **`127.0.0.1:${HOST_API_PORT:-8000}`** | Define `HOST_API_PORT` na raiz ou no `.env` se **8000** estiver ocupada. |
 | Web (dev) | `5173`                        | Após `npm run dev` em `services/web`. |
+| prompt-bridge | **`127.0.0.1:${HOST_PROMPT_BRIDGE_PORT:-3040}`** | Opcional (`--profile cursor`), para `PROMPT_LLM_BACKEND=cursor`. |
+
 
 Passo seguinte sempre a partir da **raiz** do repositório (`.../NeuralCAD/app`).
 
@@ -33,7 +35,9 @@ cp .env.example .env
 ```
 
 - **`HOST_API_PORT`**: porta publicada no host para a API (omitir ou `8000` por omissão). Se já houver algo a ouvir em **8000**, usa por exemplo **`8010`** e alinha o frontend (passo 4).
-- **Chave Claude**: no `.env`, define **`ANTHROPIC_API_KEY`**. Os serviços `api` e `worker` já leem essa env do ficheiro no `docker-compose`.
+- **Prompt Architect (LLM)**:
+  - **Anthropic (omissão):** **`ANTHROPIC_API_KEY`** no `.env` e **`PROMPT_LLM_BACKEND=anthropic`** (ou omitido).
+  - **Cursor SDK:** **`PROMPT_LLM_BACKEND=cursor`**, **`CURSOR_PROMPT_BRIDGE_URL=http://prompt-bridge:3040`**, **`CURSOR_API_KEY`**, e levantar a stack com **`docker compose --profile cursor up --build`** (inclui o serviço `prompt-bridge` que corre `Agent.prompt` contra o repo montado em `/workspace`).
 
 Validar o compose:
 

@@ -56,6 +56,9 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-change_me_minio}
       MINIO_BUCKET: ${MINIO_BUCKET:-neuralcad-artifacts}
+      PROMPT_LLM_BACKEND: ${PROMPT_LLM_BACKEND:-anthropic}
+      CURSOR_PROMPT_BRIDGE_URL: ${CURSOR_PROMPT_BRIDGE_URL:-http://prompt-bridge:3040}
+      CURSOR_BRIDGE_TIMEOUT_SECONDS: ${CURSOR_BRIDGE_TIMEOUT_SECONDS:-600}
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,6 +66,21 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:${HOST_API_PORT:-8000}:8000"
+
+  prompt-bridge:
+    profiles: ["cursor"]
+    build:
+      context: ./services/prompt-bridge
+      dockerfile: Dockerfile
+    environment:
+      CURSOR_API_KEY: ${CURSOR_API_KEY:-}
+      CURSOR_MODEL_ID: ${CURSOR_MODEL_ID:-composer-2}
+      CURSOR_AGENT_CWD: ${CURSOR_AGENT_CWD:-/workspace}
+      PORT: 3040
+    volumes:
+      - .:/workspace:ro
+    ports:
+      - "127.0.0.1:${HOST_PROMPT_BRIDGE_PORT:-3040}:3040"
 
   worker:
     build:
