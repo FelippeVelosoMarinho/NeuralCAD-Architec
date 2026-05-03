@@ -1,0 +1,99 @@
+<!-- GSD:project-start source:PROJECT.md -->
+## Project
+
+**NeuralCAD Architect**
+
+NeuralCAD Architect é um co-piloto CAD nativo de IA que converte intenção arquitetônica em linguagem natural (muitas vezes vaga) em geometria B-rep válida e editável, com um fluxo iterativo guiado por especificação. Combina **BrepGen** como motor de geração geométrica, **Claude** como arquiteto de prompts (Prompt Architect) e uma interface multimodal inspirada em VS Code (Monaco, barras laterais, viewport 3D).
+
+**Core Value:** Um usuário descreve o que precisa em linguagem natural e recebe **candidatos B-rep válidos (STEP/STL)** com rastreabilidade, feedback de qualidade geométrica e controle iterativo — sem depender de um operador CAD experiente para traduzir cada intenção em operações de baixo nível.
+
+### Constraints
+
+- **Tech stack (MVP):** Backend Python 3.10, FastAPI, Pydantic v2, Celery + Redis, PostgreSQL 16, MinIO; CAD/B-rep: PyTorch 2.2, Diffusers 0.27, BrepGen, pythonocc-core, occwl; Frontend React 18 + TS + Vite, Three.js + R3F, Zustand, TanStack Query, WebSockets; qualidade: pytest, vitest, playwright, ruff, black, eslint, prettier; observabilidade: OpenTelemetry + Prometheus + Grafana; runtime Docker Compose + Nginx.
+- **Contrato canônico:** saída estruturada alinhada a **IntentSchemaV1** (ver `IDEA.md`).
+- **Dependência de modelo:** geração geométrica depende de BrepGen e do pipeline descrito no brief; latência e fila assíncrona são explícitas no desenho.
+<!-- GSD:project-end -->
+
+<!-- GSD:stack-start source:research/STACK.md -->
+## Technology Stack
+
+## Recommended Stack
+### Core Technologies
+| Technology | Version (target) | Purpose | Why Recommended |
+|------------|------------------|---------|----------------|
+| Python | 3.10 | Backend + ML glue | Ecossistema OCC/BrepGen e async workers maduros |
+| FastAPI | latest stable | HTTP API | Tipagem Pydantic v2, OpenAPI, async |
+| Pydantic | v2 | Schemas / IntentSchemaV1 | Validação e contratos LLM↔backend |
+| Celery + Redis | current stable | Jobs de geração | Desacopla latência de inferência e OCC |
+| PostgreSQL | 16 | Metadados sessões, jobs, versionamento | ACID, consultas relacionais |
+| MinIO | S3-compatible | STEP/STL/diffs | Objetos grandes fora do DB |
+| PyTorch | 2.2 | BrepGen runtime | Dependência declarada do motor |
+| Diffusers | 0.27 | Pipeline declarativa | Alinhado ao brief |
+| BrepGen | (project pin) | Geração B-rep | Motor escolhido pelo produto |
+| pythonocc-core + occwl | (pin) | Validação / lint / util OCC | Base industrial para B-rep |
+| React + TypeScript | 18 / 5.x | UI | Ecosistema e hiring |
+| Vite | current | Build frontend | DX rápida |
+| Three.js + R3F | current | Viewport 3D | Padrão web para malhas/B-rep tessellado |
+| Zustand + TanStack Query | current | Estado cliente + server cache | Encaixa shell tipo IDE |
+| WebSockets | via FastAPI | Progresso job / streaming eventos | UX tempo real |
+### Development Tools
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| pytest / vitest | Testes backend / frontend | Cobrir contratos IntentSchema e API |
+| Playwright | E2E | Fluxos críticos UI ↔ API |
+| ruff / black / eslint / prettier | Estilo | Gate de CI cedo |
+| OpenTelemetry + Prometheus + Grafana | Observabilidade | Essencial com fila + GPU |
+### What NOT to Use
+- **Substituir OCC/BrepGen por CAD desktop headless genérico na v1** — explode escopo e licenciamento.
+- **Sincronizar estado só por polling** para geração longa — WS ou SSE é table stakes para UX.
+- **Guardar blobs grandes no Postgres** — MinIO/objeto é mais simples e barato.
+## Alternatives Considered
+| Locked choice | Alternative | When to Use Alternative |
+|---------------|-------------|-------------------------|
+| Celery | RQ / Dramatiq | Menor operações; Celery se escalabilidade e ecossistema forem prioridade |
+| MinIO | S3 cloud direto | Produção cloud gerenciada no deploy final |
+| Zustand | Redux | Estado muito formal; Zustand casa melhor com layout IDE |
+## Installation
+# Será detalhado na Fase 1 — placeholders alinhados ao monorepo planejado
+# docker compose up — serviços: api, worker, redis, postgres, minio, frontend
+<!-- GSD:stack-end -->
+
+<!-- GSD:conventions-start source:CONVENTIONS.md -->
+## Conventions
+
+Conventions not yet established. Will populate as patterns emerge during development.
+<!-- GSD:conventions-end -->
+
+<!-- GSD:architecture-start source:ARCHITECTURE.md -->
+## Architecture
+
+Architecture not yet mapped. Follow existing patterns found in the codebase.
+<!-- GSD:architecture-end -->
+
+<!-- GSD:skills-start source:skills/ -->
+## Project Skills
+
+No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, `.github/skills/`, or `.codex/skills/` with a `SKILL.md` index file.
+<!-- GSD:skills-end -->
+
+<!-- GSD:workflow-start source:GSD defaults -->
+## GSD Workflow Enforcement
+
+Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+
+Use these entry points:
+- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
+- `/gsd-debug` for investigation and bug fixing
+- `/gsd-execute-phase` for planned phase work
+
+Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+<!-- GSD:workflow-end -->
+
+
+
+<!-- GSD:profile-start -->
+## Developer Profile
+
+> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
+> This section is managed by `generate-claude-profile` -- do not edit manually.
+<!-- GSD:profile-end -->
