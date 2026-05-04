@@ -74,9 +74,9 @@ Plans:
 **Plans**: `.planning/phases/04-realtime-orchestration/04-{01..03}-PLAN.md` — ver `04-CONTEXT.md`
 
 Plans:
-- [ ] 04-01: Gateway WebSocket + autenticação de sessão
-- [ ] 04-02: Mapeamento eventos worker → WS
-- [ ] 04-03: TanStack Query + stores para consistência UI
+- [x] 04-01: Gateway WebSocket + autenticação de sessão
+- [x] 04-02: Mapeamento eventos worker → WS
+- [x] 04-03: TanStack Query + stores para consistência UI
 
 ### Phase 5: Refinement, lint & iteration history
 **Goal**: Fechar diferenciais CAD: refino guiado, qualidade visível e comparativo entre iterações.
