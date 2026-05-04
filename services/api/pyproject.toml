@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "httpx"]
+dev = ["pytest", "httpx", "fakeredis"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

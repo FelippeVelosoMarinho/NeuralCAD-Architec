@@ -14,9 +14,24 @@ from neuralcad_worker.geometry.measure import (
     topology_sketch_for_shape,
 )
 from neuralcad_worker.geometry.stub_solid import build_box_shape
+from neuralcad_worker.realtime import build_envelope, publish
 from neuralcad_worker.storage.minio_client import ensure_bucket, get_s3_client, put_object_bytes
 
 DEFAULT_WHD = (10.0, 20.0, 30.0)
+
+
+def _lifecycle(job_id: str, phase: str) -> None:
+    publish(job_id, build_envelope(job_id, "job.lifecycle", {"lifecycle": phase}))
+
+
+def _progress(job_id: str, pipeline_stage: str) -> None:
+    publish(job_id, build_envelope(job_id, "job.progress", {"pipelineStage": pipeline_stage}))
+
+
+def _reload_job_status(SessionFactory: type, uid: uuid.UUID) -> str | None:
+    with SessionFactory() as session:
+        job = session.get(Job, uid)
+        return job.status if job is not None else None
 
 
 def _parse_target_dims(payload: dict | None) -> tuple[float, float, float, dict | None]:
@@ -69,14 +84,31 @@ def process_geometry_job(job_id: str) -> None:
         payload = job.payload_json
         session.commit()
 
+    _lifecycle(job_id, "running")
+    _progress(job_id, "PROMPTING")
+
+    def _blocked_by_cancel(stage_after: str) -> bool:
+        st = _reload_job_status(SessionFactory, uid)
+        if st != "cancelled":
+            return False
+        _lifecycle(job_id, "cancelled")
+        _ = stage_after
+        return True
+
+    if _blocked_by_cancel("running"):
+        return
+
+    _progress(job_id, "DENOISING_FACES")
+    if _blocked_by_cancel("DENOISING_FACES"):
+        return
+
     w_mm, h_mm, d_mm, target_obj = _parse_target_dims(payload)
 
     try:
         shape = build_box_shape(w_mm, h_mm, d_mm)
-        step_bytes = shape_to_step_bytes(shape)
-        measured = measure_bbox_mm(shape)
     except Exception as e:  # noqa: BLE001
         err = str(e)[:2000]
+        _lifecycle(job_id, "failed")
         with SessionFactory() as session:
             job = session.get(Job, uid)
             if job is not None:
@@ -84,6 +116,29 @@ def process_geometry_job(job_id: str) -> None:
                 job.error_message = err
                 job.updated_at = datetime.now(timezone.utc)
                 session.commit()
+        return
+
+    _progress(job_id, "DENOISING_EDGES")
+    if _blocked_by_cancel("DENOISING_EDGES"):
+        return
+
+    try:
+        step_bytes = shape_to_step_bytes(shape)
+        measured = measure_bbox_mm(shape)
+    except Exception as e:  # noqa: BLE001
+        err = str(e)[:2000]
+        _lifecycle(job_id, "failed")
+        with SessionFactory() as session:
+            job = session.get(Job, uid)
+            if job is not None:
+                job.status = "failed"
+                job.error_message = err
+                job.updated_at = datetime.now(timezone.utc)
+                session.commit()
+        return
+
+    _progress(job_id, "SEWING")
+    if _blocked_by_cancel("SEWING"):
         return
 
     bucket = os.environ.get("MINIO_BUCKET", "neuralcad-artifacts")
@@ -131,6 +186,12 @@ def process_geometry_job(job_id: str) -> None:
     }
     if mesh_error:
         audit["mesh_error"] = mesh_error
+
+    _progress(job_id, "MEASURING_ABNT")
+    if _blocked_by_cancel("MEASURING_ABNT"):
+        return
+
+    _lifecycle(job_id, "success")
 
     with SessionFactory() as session:
         job = session.get(Job, uid)

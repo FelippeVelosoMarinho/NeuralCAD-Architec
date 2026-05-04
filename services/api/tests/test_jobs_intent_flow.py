@@ -88,9 +88,16 @@ def test_intent_job_envelope_extra_top_level_forbidden():
         )
 
 
+def _stub_async_result():
+    ar = MagicMock()
+    ar.id = "stub-celery-id"
+    return ar
+
+
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setattr(main_module.celery_app, "send_task", MagicMock())
+    mock_send_task = MagicMock(side_effect=lambda *a, **k: _stub_async_result())
+    monkeypatch.setattr(main_module.celery_app, "send_task", mock_send_task)
 
     class _FakeDb:
         def __init__(self) -> None:
@@ -116,12 +123,12 @@ def client(monkeypatch):
 
     app.dependency_overrides[get_db] = _override_db
     with TestClient(app) as tc:
-        yield tc, fake
+        yield tc, fake, mock_send_task
     app.dependency_overrides.pop(get_db, None)
 
 
 def test_post_jobs_persists_preflight_and_enqueues(monkeypatch, client):
-    tc, fake = client
+    tc, fake, send_task_mock = client
     intent_dict = json.loads(test_intent_schema.CANON_JSON)
     wrapped = {
         "intent": intent_dict,
@@ -136,4 +143,5 @@ def test_post_jobs_persists_preflight_and_enqueues(monkeypatch, client):
     assert "id" in data
     job = fake.saved[-1]
     assert job.payload_json["preflight"]["geo_risk"]["severity"] == "info"
-    assert main_module.celery_app.send_task.called
+    assert job.celery_task_id == "stub-celery-id"
+    assert send_task_mock.called

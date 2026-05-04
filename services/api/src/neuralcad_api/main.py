@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -14,15 +15,21 @@ from fastapi.responses import Response
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from redis.asyncio import Redis
 
 from neuralcad_api.db.models import Job
 from neuralcad_api.db.session import async_session_maker, engine
+from neuralcad_api.realtime_envelope import cancelled_envelope, lifecycle_envelope
 from neuralcad_api.routers.intent import router as intent_router
 from neuralcad_api.schemas.jobs import (
     JobResponse,
     parse_job_envelope_with_legacy_retry,
     persist_payload_from_envelope,
 )
+from neuralcad_api.services.redis_bus import publish_json, redis_url_from_env
+from neuralcad_api.ws.job_channel import router as job_ws_router
+
+logger = logging.getLogger(__name__)
 
 celery_app = Celery(
     "neuralcad_api",
@@ -35,8 +42,18 @@ celery_app = Celery(
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    redis: Redis | None = None
+    try:
+        redis = Redis.from_url(redis_url_from_env(), decode_responses=True)
+        await redis.ping()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Redis inicialização falhou — WS realtime desactivado (%s)", exc)
+        redis = None
+    app.state.redis = redis  # None evita handshake WS em dev sem broker
     yield
+    if redis is not None:
+        await redis.aclose()
     await engine.dispose()
 
 
@@ -52,6 +69,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(intent_router)
+app.include_router(job_ws_router)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -95,7 +113,63 @@ async def create_job(request: Request, db: AsyncSession = Depends(get_db)) -> Jo
     db.add(job)
     await db.commit()
     await db.refresh(job)
-    celery_app.send_task("process_geometry_job", args=[str(job.id)])
+    redis: Redis | None = request.app.state.redis
+    try:
+        ar = await asyncio.to_thread(
+            celery_app.send_task,
+            "process_geometry_job",
+            args=[str(job.id)],
+        )
+        tid = getattr(ar, "id", None)
+        if tid:
+            job.celery_task_id = tid
+            await db.commit()
+            await db.refresh(job)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("enqueue Celery falhou job_id=%s", job.id)
+        raise HTTPException(status_code=502, detail="failed to enqueue worker task") from exc
+    return job
+
+
+@app.delete("/api/v1/jobs/{job_id}", response_model=JobResponse)
+async def cancel_job(job_id: uuid.UUID, request: Request, db: AsyncSession = Depends(get_db)) -> Job:
+    result = await db.execute(select(Job).where(Job.id == job_id))
+    job = result.scalar_one_or_none()
+    if job is None:
+        raise HTTPException(status_code=404, detail="job not found")
+
+    terminal = frozenset({"success", "failed", "cancelled"})
+    if job.status in terminal:
+        raise HTTPException(
+            status_code=409,
+            detail={"reason": "job_terminal", "status": job.status},
+        )
+
+    job.status = "cancelled"
+    tid = job.celery_task_id
+    redis: Redis | None = request.app.state.redis
+    await db.commit()
+    await db.refresh(job)
+
+    if tid:
+        await asyncio.to_thread(
+            lambda t=tid: celery_app.control.revoke(t, terminate=True),
+        )
+    else:
+        logger.warning("DELETE job sem celery_task_id (corrida enqueue?) — job_id=%s", job_id)
+
+    if redis is not None:
+        await publish_json(
+            redis,
+            str(job_id),
+            lifecycle_envelope(str(job_id), "cancelled"),
+        )
+        await publish_json(
+            redis,
+            str(job_id),
+            cancelled_envelope(str(job_id)),
+        )
+
     return job
 
 

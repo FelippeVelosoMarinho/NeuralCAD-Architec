@@ -26,3 +26,4 @@ class Job(Base):
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     artifact_key: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     dimensional_audit: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    celery_task_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)

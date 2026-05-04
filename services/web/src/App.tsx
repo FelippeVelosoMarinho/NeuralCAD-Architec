@@ -24,6 +24,11 @@ export default function App() {
           <strong>Worker:</strong> {flow.job.status}
         </div>
       ) : null}
+      {flow.pipelineStageLabel ? (
+        <div>
+          <strong>Etapa:</strong> {flow.pipelineStageLabel}
+        </div>
+      ) : null}
       {flow.error ? (
         <div style={{ color: "var(--error)", marginTop: "0.35rem" }}>
           <strong>Erro:</strong> {flow.error}
