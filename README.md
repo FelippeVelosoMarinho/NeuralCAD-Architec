@@ -4,6 +4,13 @@ Stack local: Postgres, Redis, MinIO (S3-compatível), API FastAPI + Celery worke
 
 Este documento descreve o **fluxo completo** para subir backend e frontend e validar um job até artefactos (STEP/STL).
 
+<img width="1432" height="808" alt="image" src="https://github.com/user-attachments/assets/0fa78dd7-2cbf-4a9a-a229-c4c3626a3d85" />
+
+Exemplo lindo dele gerando uma "esfera":
+https://github.com/user-attachments/assets/a571b4d9-6fc9-43ad-b453-349c53a184c9
+
+"mentira, nesse momento ainda não estou rodando o modelo de neuralCAD da autodesk que inspurou a criação da ferramenta..."
+
 ## Pré-requisitos
 
 - **Docker Engine** + **Compose** (plug-in).
