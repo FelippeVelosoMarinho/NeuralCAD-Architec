@@ -3,71 +3,49 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-05-03T19:06:19.797Z"
-last_activity: 2026-05-03 -- Phase 02 planning complete
+stopped_at: null
+last_updated: "2026-05-03T23:59:59.000Z"
+last_activity: "2026-05-03 — Phase 04 planning bootstrap (realtime orchestration)."
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 6
+  percent: —
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-03)
+See: `.planning/PROJECT.md`
 
-**Core value:** NL → B-rep válido com rastreabilidade, lint e refinamento iterativo.
-**Current focus:** Phase 2 — Intent schema & Prompt Architect (próximo: planear)
+**Current focus:** **Phase 4 — Realtime orchestration** (`04-realtime-orchestration`)
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-03 -- Phase 02 planning complete
+Phase: **04** — PLANs `04-01` … `04-03` criados; implementação por onda (WS gateway → worker publish → UI Query+WS).
 
-Progress: [░░░░░░░░░░] 0%
+Resume / context: `.planning/phases/04-realtime-orchestration/04-CONTEXT.md`
 
 ## Performance Metrics
 
-**Velocity:**
-
-- Total plans completed: 3
-- Average duration: —
-- Total execution time: —
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 | 3 | - | - |
+*(unchanged — actualizar após SUMMARYs da fase 4)*
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions são registrados em PROJECT.md — ver tabela **Key Decisions**.
+- Phase 4 MVP: **Redis Pub/Sub** `neuralcad:job:{id}` + **FastAPI WebSocket** + **TanStack Query** na UI (ver `04-CONTEXT.md`).
 
 ### Pending Todos
 
-None yet.
+- Executar `/gsd-execute-phase 4` ou implementar ondas manualmente.
 
 ### Blockers/Concerns
 
-None yet.
-
-## Deferred Items
-
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| *(none)* | | | |
+- ROADMAP ainda lista Phase 2 como “not started” no quadro de fases; grande parte do intent já existe no código — reconciliar em milestone audit quando conveniente.
 
 ## Session Continuity
 
-Last session: 2026-05-03T19:01:52.644Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-intent-schema-prompt-architect/02-CONTEXT.md
+Last session: Phase 4 kickoff (planning artifacts only until execution starts).

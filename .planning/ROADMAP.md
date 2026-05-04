@@ -9,7 +9,7 @@ Entrega incremental alinhada aos cinco sprints do brief: primeiro prova-se o **p
 - [x] **Phase 1: Geometric pipeline & platform** - API, workers, armazenamento e primeira geração B-rep ponta a ponta no backend
 - [ ] **Phase 2: Intent schema & Prompt Architect** - IntentSchemaV1, integração Claude, clarificações e config BrepGen
 - [x] **Phase 3: VS Code-like UI & 3D foundation** - Layout shell, Monaco, viewport e explorer de topologia (`services/web/`).
-- [ ] **Phase 4: Realtime orchestration** - WebSockets, progresso de jobs e fluxo completo pela UI
+- [ ] **Phase 4: Realtime orchestration** - WebSockets, progresso de jobs e fluxo completo pela UI *(PLANs drafted em `04-realtime-orchestration/`)*
 - [ ] **Phase 5: Refinement, lint & iteration history** - Seleção, refinamento, lint geométrico, versões e diff visual
 
 ## Phase Details
@@ -71,7 +71,7 @@ Plans:
   2. Usuário completa fluxo feliz prompt→modelo na UI em ambiente de desenvolvimento
   3. Reconexão ou cancelamento não corrompe estado persistido no servidor
 **UI hint**: yes
-**Plans**: TBD
+**Plans**: `.planning/phases/04-realtime-orchestration/04-{01..03}-PLAN.md` — ver `04-CONTEXT.md`
 
 Plans:
 - [ ] 04-01: Gateway WebSocket + autenticação de sessão
@@ -103,5 +103,5 @@ Plans:
 | 1. Geometric pipeline & platform | 3/3 | Complete | 2026-05-03 |
 | 2. Intent schema & Prompt Architect | 0/TBD | Not started | - |
 | 3. VS Code-like UI & 3D foundation | 3/3 | Complete | 2026-05-03 |
-| 4. Realtime orchestration | 0/TBD | Not started | - |
+| 4. Realtime orchestration | 0/3 | In progress — PLANs drafted 2026-05-03 | — |
 | 5. Refinement, lint & iteration history | 0/TBD | Not started | - |
