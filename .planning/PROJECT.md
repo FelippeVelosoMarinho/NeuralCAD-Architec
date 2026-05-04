@@ -13,12 +13,12 @@ Um usuário descreve o que precisa em linguagem natural e recebe **candidatos B-
 ### Validated
 
 - [x] Pipeline backend gera B-rep de forma assíncrona (API + workers) com artefatos versionados — **Phase 1** (FOUND-01..04; ver `01-VERIFICATION.md`).
+- [x] Loop tempo real (**RT-01…RT-03**) com Redis Pub/Sub, WS por job (`client_session`), cancelamento correlacionado e UI sem polling exclusivo sobre GET — **Phase 4** (ver `04-VERIFICATION.md`).
 
 ### Active
 
 - [ ] Contrato **IntentSchemaV1** entre LLM e motor geométrico, com validação e clarificações mínimas
 - [ ] Shell de UI estilo VS Code: explorer de topologia, Monaco, viewport 3D, console copiloto
-- [ ] Loop tempo real: prompt → geração → atualização de modelo na UI
 - [ ] Refinar por seleção (face/edge/vertex), lint geométrico, histórico e diff visual entre iterações
 - [ ] Stack fechada do MVP conforme `IDEA.md` (FastAPI, Celery, Redis, Postgres 16, MinIO, React/Vite, Three.js, Docker Compose)
 
@@ -69,4 +69,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-03 after Phase 1 complete*
+*Last updated: 2026-05-03 after Phase 4 complete (realtime orchestration).*
