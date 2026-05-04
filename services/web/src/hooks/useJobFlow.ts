@@ -174,6 +174,13 @@ export function useJobFlow() {
       const url = jobChannelWsUrl(jobId, clientSession);
       ws = new WebSocket(url);
 
+      ws.onopen = () => {
+        void qc.fetchQuery({
+          queryKey: jobDetailKey(jobId),
+          queryFn: () => fetchJobRecord(jobId),
+        });
+      };
+
       ws.onmessage = async (evt) => {
         if (typeof evt.data !== "string") return;
         let parsed: unknown;

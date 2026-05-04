@@ -57,6 +57,23 @@ def _normalize_quality_targets(qt: dict[str, Any]) -> dict[str, Any]:
     return {"preferWatertight": bool(wt), "maxSelfIntersectionRisk": risk}
 
 
+_ALLOWED_SYM = frozenset({"none", "x", "y", "z", "xy", "xz", "yz"})
+
+
+def _coerce_symmetry(raw: Any) -> str:
+    """Alguns valores devolvidos por LLMs não são literais IntentSchema (ex.: 'spherical' para uma bola)."""
+    if raw is None:
+        return "none"
+    if not isinstance(raw, str):
+        return "none"
+    s = raw.strip().lower()
+    if s in _ALLOWED_SYM:
+        return s
+    if s in ("spherical", "sphere", "radial", "rotational", "axisymmetric", "cylindrical"):
+        return "none"
+    return "none"
+
+
 def normalize_intent_payload_for_v1(data: dict[str, Any], *, fallback_prompt: str) -> dict[str, Any]:
     """
     Copia defensiva + coerções mínimas antes de `IntentSchemaV1.model_validate`.
@@ -99,8 +116,7 @@ def normalize_intent_payload_for_v1(data: dict[str, Any], *, fallback_prompt: st
         if mm:
             cons["dimensionsMm"] = mm
 
-    if cons.get("symmetry") is None:
-        cons["symmetry"] = "none"
+    cons["symmetry"] = _coerce_symmetry(cons.get("symmetry"))
     if not isinstance(cons.get("manufacturingHints"), list):
         cons["manufacturingHints"] = _str_list(cons.get("manufacturingHints"))
     if not isinstance(cons.get("materialHints"), list):

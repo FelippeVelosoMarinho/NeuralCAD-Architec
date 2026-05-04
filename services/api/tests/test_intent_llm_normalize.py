@@ -86,3 +86,20 @@ def test_invalid_hole_removed_still_validates_when_empty():
     out = normalize_intent_payload_for_v1(raw, fallback_prompt="x")
     IntentSchemaV1.model_validate(out)
     assert out["topologyHints"]["holes"] == []
+
+
+def test_llm_symmetry_spherical_mapped_to_none():
+    raw = {
+        "sessionId": "s1",
+        "promptOriginal": "bola raio 60cm",
+        "intent": {"objectType": "sphere", "style": [], "functionalGoal": "shape"},
+        "constraints": {
+            "dimensionsMm": {"width": 600, "height": 600, "depth": 600},
+            "symmetry": "spherical",
+            "manufacturingHints": [],
+            "materialHints": [],
+        },
+    }
+    out = normalize_intent_payload_for_v1(raw, fallback_prompt="bola")
+    IntentSchemaV1.model_validate(out)
+    assert out["constraints"]["symmetry"] == "none"
