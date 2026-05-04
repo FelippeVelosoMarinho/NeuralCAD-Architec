@@ -14,9 +14,9 @@ Progresso em tempo real dos jobs através de Redis → WebSocket, cancelação c
 
 | ID | Critério | Evidência |
 |----|----------|-----------|
-| RT-01 | Canal job + WS + cancel worker/API | ```41:93:services/api/src/neuralcad_api/ws/job_channel.py```, ```101:173:services/api/src/neuralcad_api/main.py```, ```73:205:services/worker/src/neuralcad_worker/tasks/geometry.py``` |
+| RT-01 | Canal job + WS + cancel worker/API | `services/api/src/neuralcad_api/ws/job_channel.py`, `services/api/src/neuralcad_api/main.py` (DELETE + enqueue `celery_task_id`), worker `tasks/geometry.py` |
 | RT-02 | Eventos estágio OCC + lifecycle | `_progress`, `_lifecycle`, `build_envelope` em worker `geometry.py` e `realtime.py` |
-| RT-03 | SPA sem intervalo GET; `client_session` | ```69:277:services/web/src/hooks/useJobFlow.ts```, ```1:17:services/web/src/lib/tabClientSession.ts```, ```1:14:services/web/src/lib/wsJobChannel.ts``` |
+| RT-03 | SPA sem intervalo GET; `client_session` | `services/web/src/hooks/useJobFlow.ts`, `tabClientSession.ts`, `wsJobChannel.ts` |
 
 ## Conformidade com planos
 
